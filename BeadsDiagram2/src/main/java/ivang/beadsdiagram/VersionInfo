@@ -1,0 +1,51 @@
+BeadsDiagram2 version 0.1 (because why not)
+
+In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
+This version is hard limited to 1 window, so if several windows needed, a lot of code has to be rearranged.
+UI uses Google Gson Library to convert Java Objects to JSON and wise versa.
+Bezier curves are quadratic and use: first bead, it's up point, second bead's down point, second bead; as its 4 points.
+Kind of obvious, but translate level must not contain any additional information to model level that is required to
+    draw a diagram. All information required to draw a diagram must be stored on model level.
+FileManager is broken in this version.
+
+The program is divided into 3 levels:
+1) model
+    It might change slightly, such as Bead using VPoint to store its location or something.
+    I still don't know what's the best way of doing things even on this level.
+    Model stores the information on basic level.
+
+    Bead - Just stores its position, rotation and the points of bezier curves for strings going in either direction.
+    Line - Stores beads that this string is going through, endpoints and offsets in the beads.
+        Beads are stored as numbers (indexes in the array of DiagramManager) which is kind of arbitrary (not great).
+    VPoint - (Virtual Point) - Stores (x,y) position. In this version it's only used to store endpoints of Line.
+    DiagramManager - Contains protected arrays of beads and lines(strings).
+        Provides functionality to manipulate either one.
+        All interactions with diagram should theoretically be done through this manager.
+
+2) translate
+    All classes in this level extend their counterparts in Model. UI level should interact with only this level.
+    Provide more/more useful functionality for UI level (for drawing, interacting; less abstract).
+
+    JBead - (Java Bead) - Most notably, has upP/downP points which are the points for bezier curves
+        and updates them automatically.
+    JLine - (Java Line) - Pretty much same as Line, but uses JPoints instead of VPoints.
+    JPoint - (Java Point) - Same as Point with the exception of additional functions.
+    JManager - (Java Diagram Manager) - Provides most of the same functionality as normal DiagramManager.
+        Uses JBead and JLine instead of Bead and Line.
+
+3) ui
+    This level uses translate level to draw the diagram and let user interact with it.
+
+    Display - Contains main function. Creates/Loads a diagram in form of JManager and calls to Drawer to draw.
+    Drawer - Has timer that repaints MyFrame every once in a while (limiting frame rate).
+    MyFrame - Set up a Frame that contains MyPanel.
+    MyPanel - A panel that the diagram is drawn on. It's supposed to be extended by other class (UI class)
+        to implement specific behaviors (what exactly happens when the user drag clicks or left clicks?).
+    UI - (User Interface) - Implements MyPanel's methods. Slightly abstracted from AWT.
+    FileManager - Can (should) save/load diagram in a file storing it in JSON format.
+        It should save DiagramManager (more abstract, only information required to draw a diagram),
+        but load JManager (more useful for drawing, used in ui level), and I'm not sure how to make it work.
+        Right now it's broken because of how FileManager loads Bead and Line, but later they are being casted to
+        JBead and JLine (I get ClassCastException), if I understand correctly.
+
+Additionally, there is a Util class which provides a few mathematical functions.
