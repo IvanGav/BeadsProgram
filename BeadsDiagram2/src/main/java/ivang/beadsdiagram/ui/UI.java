@@ -11,7 +11,7 @@ import ivang.beadsdiagram.translate.JPoint;
  */
 public class UI extends MyPanel {
 
-    private int action;
+    private int action = NO_ACTION;
     private int slider;
     private JPoint lineEnd;
     private int grabbedBead;
@@ -23,6 +23,13 @@ public class UI extends MyPanel {
     }
 
     public void mousePressed(int button) {
+//        if(!isMouseInWorkspace) {
+//            action = NO_ACTION;
+//            slider = 0;
+//            lineEnd = null;
+//            grabbedBead = 0;
+//            return;
+//        } else {
         slider = strengthSlider();
         lineEnd = endGrabbed();
         grabbedBead = beadGrabbed();
@@ -65,7 +72,7 @@ public class UI extends MyPanel {
 
     public void mouseClicked(int button, int clickCount) {
         if(button == MOUSE_RIGHT && clickCount == 2) {
-            dm.deleteBead(grabbedBead);
+            deleteBead(grabbedBead);
         }
     }
 
@@ -111,5 +118,10 @@ public class UI extends MyPanel {
     private void rotBead() {
         JBead b = dm.getBead(grabbedBead);
         b.rotateTo(Util.angleBetween(b.x, b.y, mouseX, mouseY) - tempAngle);
+    }
+
+    private void deleteBead(int bead) {
+        if(bead > 0)
+            dm.deleteBead(grabbedBead);
     }
 }

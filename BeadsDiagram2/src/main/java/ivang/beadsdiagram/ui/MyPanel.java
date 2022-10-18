@@ -36,8 +36,8 @@ public class MyPanel extends JPanel implements AWTEventListener {
     public final int MOVE_BEAD = 4;
     public final int ROTATE_BEAD = 5;
 
-    public final int screenX;
-    public final int screenY;
+    public final int workspaceX;
+    public final int workspaceY;
 
     public JManager dm;
     public Image image;
@@ -55,16 +55,22 @@ public class MyPanel extends JPanel implements AWTEventListener {
     public int mouseUpY;
 
     public boolean isMouseDown;
+    public boolean isMouseInWorkspace;
 
     public MyPanel(JManager dm) {
-        image = new ImageIcon("C:\\Users\\54616\\OneDrive\\Pictures\\Saved Pictures\\testPic.jpg").getImage();
+        image = new ImageIcon("placeholder.jpg").getImage();
         int imgW = image.getWidth(null);
         int imgH = image.getHeight(null);
-        int screenSize = 1000;
-        screenX = screenSize;
-        screenY = screenSize * imgH / imgW;
+
+        int screenSize = 750;
+        workspaceX = screenSize;
+        workspaceY = screenSize * imgH / imgW;
+
         this.dm = dm;
-        this.setPreferredSize(new Dimension(screenX,screenY));
+
+        isMouseDown = false;
+
+        this.setPreferredSize(new Dimension(workspaceX,workspaceY));
         this.setVisible(true);
         //listener
         Toolkit.getDefaultToolkit().addAWTEventListener(this,
@@ -73,27 +79,36 @@ public class MyPanel extends JPanel implements AWTEventListener {
 
     //___________________________Draw and listen to mouse/keyboard______________________________
 
-    //listen to mouse
+    //listen to mouse/keyboard
     public void eventDispatched(AWTEvent event) {
         if(event.getID() == 503) { //mouse moved
             MouseEvent me = (MouseEvent) event;
-            updateMousePos(me);
-            mouseMoved();
+            isMouseInWorkspace = !isMouseOutOfBounds(me);
+            if(isMouseInWorkspace) {
+                updateMousePos(me);
+                mouseMoved();
+            }
         }
         if(event.getID() == 506) { //mouse dragged (pressed moved)
             MouseEvent me = (MouseEvent) event;
-            updateMousePos(me);
-            mouseDragged(me.getButton());
+            if(isMouseInWorkspace) {
+                updateMousePos(me);
+                mouseDragged(me.getButton());
+            }
         }
         if(event.getID() == 501) { //mouse pressed
             MouseEvent me = (MouseEvent) event;
-            updateMouseDown(me);
-            mousePressed(me.getButton());
+            if(isMouseInWorkspace) {
+                updateMouseDown(me);
+                mousePressed(me.getButton());
+            }
         }
         if(event.getID() == 502) { //mouse released
             MouseEvent me = (MouseEvent) event;
-            updateMouseUp(me);
-            mouseReleased();
+            if(isMouseInWorkspace) {
+                updateMouseUp(me);
+                mouseReleased();
+            }
         }
         if(event.getID() == 500) { //mouse clicked
             MouseEvent me = (MouseEvent) event;
@@ -103,14 +118,13 @@ public class MyPanel extends JPanel implements AWTEventListener {
             KeyEvent ke = (KeyEvent) event;
             keyTyped(ke.getKeyChar());
         }
-        mouseActionPerformed();
     }
 
     //draw
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         super.paint(g2d);
-        g2d.drawImage(image, 0, 0, screenX, screenY, null);
+        g2d.drawImage(image, 0, 0, workspaceX, workspaceY, null);
         g2d.setPaint(Color.BLACK);
         drawBeads(g2d);
         drawStrings(true, g2d);
@@ -146,15 +160,13 @@ public class MyPanel extends JPanel implements AWTEventListener {
 
     public void mouseDragged(int button) { }
 
-    public void mouseActionPerformed() { }
-
     public void mouseMoved() { }
 
     public void mouseClicked(int button, int clickCount) { }
 
     public void keyTyped(char key) { }
 
-    //__________________________________Calculating mouse things methods________________________________________
+    //__________________________________Calculating mouse things functions________________________________________
 
     //return the +bead number in array if mouse is close to its upS slider, -beadN if close to downS
     //  and 0 if mouse is not near any slider. Prefers lower bead numbers if some overlap.
@@ -191,6 +203,13 @@ public class MyPanel extends JPanel implements AWTEventListener {
         return 0;
     }
 
+    //return true if mouse is out of workspace boundaries (or over something but MyPanel)
+    public boolean isMouseOutOfBounds(MouseEvent me) {
+        JPoint mousePos = new JPoint(me.getPoint());
+        return mousePos.x < dx || mousePos.y < dy || mousePos.x > dx + workspaceX || mousePos.y > dy + workspaceY
+                || me.getSource().getClass() != MyFrame.class;
+    }
+
     //____________________________________Drawing methods_________________________________________________
 
     //draw beads
@@ -199,11 +218,9 @@ public class MyPanel extends JPanel implements AWTEventListener {
             bead(g2d, i);
             JBead b = dm.getBead(i);
             g2d.drawString(i+"+", b.upP.x, b.upP.y);
-            g2d.drawOval(b.upP.x-SLIDER_CAPTURE_RADIUS,b.upP.y-SLIDER_CAPTURE_RADIUS,
-                    SLIDER_CAPTURE_RADIUS*2,SLIDER_CAPTURE_RADIUS*2);
+            drawCircle(b.upP.x,b.upP.y,SLIDER_CAPTURE_RADIUS,g2d);
             g2d.drawString(i+"-", b.downP.x, b.downP.y);
-            g2d.drawOval(b.downP.x-SLIDER_CAPTURE_RADIUS, b.downP.y-SLIDER_CAPTURE_RADIUS,
-                    SLIDER_CAPTURE_RADIUS*2,SLIDER_CAPTURE_RADIUS*2);
+            drawCircle(b.downP.x,b.downP.y,SLIDER_CAPTURE_RADIUS,g2d);
         }
     }
 
@@ -219,8 +236,7 @@ public class MyPanel extends JPanel implements AWTEventListener {
                 //start to first bead
                 if (drawEnds && start != null && dm.numBeads() >= Math.abs(points.get(0))) {
                     drawStringBetween(start, -points.get(0), offsets.get(0), g2d);
-                    g2d.drawOval(start.x - SLIDER_CAPTURE_RADIUS, start.y - SLIDER_CAPTURE_RADIUS,
-                            SLIDER_CAPTURE_RADIUS * 2, SLIDER_CAPTURE_RADIUS * 2);
+                    drawCircle(start.x, start.y, SLIDER_CAPTURE_RADIUS, g2d);
                 }
                 //between beads
                 for (int j = 0; j < points.size() - 1; j++) {
@@ -231,24 +247,21 @@ public class MyPanel extends JPanel implements AWTEventListener {
                 //last bead to end
                 if (drawEnds && end != null && dm.numBeads() >= Math.abs(points.get(points.size() - 1))) {
                     drawStringBetween(end, points.get(points.size() - 1), offsets.get(offsets.size() - 1), g2d);
-                    g2d.drawOval(end.x - SLIDER_CAPTURE_RADIUS, end.y - SLIDER_CAPTURE_RADIUS,
-                            SLIDER_CAPTURE_RADIUS * 2, SLIDER_CAPTURE_RADIUS * 2);
+                    drawCircle(end.x, end.y, SLIDER_CAPTURE_RADIUS, g2d);
                 }
             }
         }
     }
 
-    //_____________________________________________________________________________________________________
+    //_____________________________________Other functions related to drawing_________________________________________
 
     //draw a bead number n in the array of beads
     private void bead(Graphics2D g, int n) { //n is still the number of bead - index in ArrayList+1
-        int r = BEAD_RADIUS;
-        int d = BEAD_RADIUS * 2;
         JBead b = dm.getBead(n);
-        g.drawOval(b.x-r,b.y-r,d,d); // -d because START OF A CIRCLE IS UP LEFT. Actual coordinates are b.x, b.y
+        drawCircle(b.x,b.y,BEAD_RADIUS,g); // -d because START OF A CIRCLE IS UP LEFT. Actual coordinates are b.x, b.y
         g.drawString(""+n,b.x+20,b.y);
-        int dx = Util.rotX(r,b.rot);
-        int dy = Util.rotY(r,b.rot);
+        int dx = Util.rotX(BEAD_RADIUS,b.rot);
+        int dy = Util.rotY(BEAD_RADIUS,b.rot);
         g.drawLine(b.x,b.y,b.x+dx,b.y+dy);
     }
 
@@ -309,5 +322,10 @@ public class MyPanel extends JPanel implements AWTEventListener {
             g2d.drawLine(calcBezier(p1.x,p2.x,p3.x,p4.x,t / detail),calcBezier(p1.y,p2.y,p3.y,p4.y,t / detail),
                     calcBezier(p1.x,p2.x,p3.x,p4.x,(t+1) / detail),calcBezier(p1.y,p2.y,p3.y,p4.y,(t+1) / detail));
         }
+    }
+
+    //draw a circle with center at (x,y) and radius 'r'
+    private void drawCircle(int x, int y, int r, Graphics2D g2d) {
+        g2d.drawOval(x-r,y-r,r*2,r*2);
     }
 }

@@ -1,12 +1,25 @@
-BeadsDiagram2 version 0.1 (because why not)
+BeadsDiagram2 version 0.1
 
 In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
+    I'm planning to use area under workspace to allow user to manipulate strings(lines).
 This version is hard limited to 1 window, so if several windows needed, a lot of code has to be rearranged.
 UI uses Google Gson Library to convert Java Objects to JSON and wise versa.
 Bezier curves are quadratic and use: first bead, it's up point, second bead's down point, second bead; as its 4 points.
 Kind of obvious, but translate level must not contain any additional information to model level that is required to
     draw a diagram. All information required to draw a diagram must be stored on model level.
 FileManager is broken in this version.
+
+What's new:
+    Now Workspace is not the only thing present in the window (MyFrame). I figured out how to
+        create buttons and stuff and example is added.
+    Whenever mouse is not in workspace, nothing will happen when clicking.
+
+Plan:
+    Create a new class that will hold all UI needed to manipulate strings which will be under the main workspace.
+    Set up a gitignore file.
+
+To fix:
+    FileManager
 
 The program is divided into 3 levels:
 1) model
