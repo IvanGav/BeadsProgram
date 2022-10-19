@@ -1,4 +1,4 @@
-BeadsDiagram2 version 0.3
+BeadsDiagram2 version 0.3.1
 
 In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
     I'm planning to use area under workspace to allow user to manipulate strings(lines).
@@ -10,8 +10,6 @@ Kind of obvious, but translate level must not contain any additional information
 FileManager is broken in this version.
 
 What's new:
-    Now Workspace is not the only thing present in the window (MyFrame). I figured out how to
-        create buttons and stuff and example is added.
     Whenever mouse is not in workspace, nothing will happen when clicking.
 
 Plan:
@@ -20,9 +18,7 @@ Plan:
     Allow for string to enter from either side of a bead.
     Allow to modify only one bead/string at a time.
     Use shift to snap to 8 axis.
-
-To fix:
-    FileManager
+    Fix FileManager
 
 The program is divided into 3 levels:
 1) model
@@ -54,10 +50,11 @@ The program is divided into 3 levels:
 
     Display - Contains main function. Creates/Loads a diagram in form of JManager and calls to Drawer to draw.
     Drawer - Has timer that repaints MyFrame every once in a while (limiting frame rate).
-    MyFrame - Set up a Frame that contains MyPanel.
-    MyPanel - A panel that the diagram is drawn on. It's supposed to be extended by other class (UI class)
+    Window - Set up a Frame that contains Workspace and Layout.
+    Workspace - A panel that the diagram is drawn on. It's supposed to be extended by other class (UI class)
         to implement specific behaviors (what exactly happens when the user drag clicks or left clicks?).
     UI - (User Interface) - Implements MyPanel's methods. Slightly abstracted from AWT.
+    Layout - All buttons and other UI (not UI class lol) needed (mostly for lines(strings))
     FileManager - Can (should) save/load diagram in a file storing it in JSON format.
         It should save DiagramManager (more abstract, only information required to draw a diagram),
         but load JManager (more useful for drawing, used in ui level), and I'm not sure how to make it work.
