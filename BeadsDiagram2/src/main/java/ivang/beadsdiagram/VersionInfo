@@ -1,4 +1,4 @@
-BeadsDiagram2 version 0.1
+BeadsDiagram2 version 0.3
 
 In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
     I'm planning to use area under workspace to allow user to manipulate strings(lines).
@@ -15,8 +15,11 @@ What's new:
     Whenever mouse is not in workspace, nothing will happen when clicking.
 
 Plan:
-    Create a new class that will hold all UI needed to manipulate strings which will be under the main workspace.
     Set up a gitignore file.
+    Change addLine/createBead to take in an object instead of parameters for creating one.
+    Allow for string to enter from either side of a bead.
+    Allow to modify only one bead/string at a time.
+    Use shift to snap to 8 axis.
 
 To fix:
     FileManager

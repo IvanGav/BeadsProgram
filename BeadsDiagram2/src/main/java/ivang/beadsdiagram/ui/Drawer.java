@@ -11,11 +11,11 @@ import javax.swing.Timer;
  */
 public class Drawer implements ActionListener {
 
-    public MyFrame frame;
+    public Window frame;
     public Timer tim;
 
     public Drawer(JManager dm) {
-        frame = new MyFrame(dm);
+        frame = new Window(dm);
         tim = new Timer(1000/60,this);
     }
 

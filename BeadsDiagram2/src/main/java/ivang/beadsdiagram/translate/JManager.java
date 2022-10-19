@@ -25,14 +25,21 @@ public class JManager extends DiagramManager {
         return (JBead) super.getBead(n);
     }
 
+    public void addLine() {
+        lines.add(new JLine());
+        lines.get(lines.size()-1).addEnds();
+    }
+
     //create a JLine
     public void addLine(int[] b) {
         lines.add(new JLine(b));
+        lines.get(lines.size()-1).addEnds();
     }
 
     //create a JLine with offsets
     public void addLine(int[] b, int[] o) {
         lines.add(new JLine(b,o));
+        lines.get(lines.size()-1).addEnds();
     }
 
     //get a JLine at a specific index

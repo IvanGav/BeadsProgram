@@ -21,12 +21,19 @@ public class DiagramManager {
         }
     }
 
+    public void addLine() {
+        lines.add(new Line());
+        lines.get(lines.size()-1).addEnds();
+    }
+
     public void addLine(int[] b) {
         lines.add(new Line(b));
+        lines.get(lines.size()-1).addEnds();
     }
 
     public void addLine(int[] b, int[] o) {
         lines.add(new Line(b,o));
+        lines.get(lines.size()-1).addEnds();
     }
 
     public Line getLine(int i) {

@@ -9,16 +9,23 @@ import java.util.ArrayList;
     Primary function is to store information about the string.
  */
 public class Line {
-    public ArrayList<Integer> beads = new ArrayList<>(); //bead numbers start at 1
-    public ArrayList<Integer> offsets = new ArrayList<>();
-    public VPoint start;
-    public VPoint end;
+    public ArrayList<Integer> beads; //bead numbers start at 1
+    public ArrayList<Integer> offsets;
+    protected VPoint start;
+    protected VPoint end;
 
-    public Line() { }
+    public Line() {
+        beads = new ArrayList<>();
+        offsets = new ArrayList<>();
+    }
     public Line(int[] b) {
+        beads = new ArrayList<>();
+        offsets = new ArrayList<>();
         add(b);
     }
     public Line(int[] b, int[] o) {
+        beads = new ArrayList<>();
+        offsets = new ArrayList<>();
         add(b,o);
     }
 
@@ -53,14 +60,33 @@ public class Line {
 
     //delete bead with a number 'n' from the list
     public void delete(int n) {
-        for (int i = 0; i < beads.size(); i++) {
+        for (int i = beads.size()-1; i >= 0; i--) {
             if (beads.get(i) == Math.abs(n)) {
                 beads.remove(i);
                 offsets.remove(i);
-
             }
         }
         shift(n,-1); //move all bead numbers greater than 'n' 1 closer to 0
+    }
+
+    //delete all beads in this line
+    public void deleteAll() {
+        for (int i = beads.size()-1; i >= 0; i--) {
+            beads.remove(i);
+            offsets.remove(i);
+        }
+    }
+
+    //set all beads to 'b' with offsets 0
+    public void set(int[] b) {
+        deleteAll();
+        add(b);
+    }
+
+    //set all beads to 'b' with offsets 'o' (assuming same size arrays)
+    public void set(int[] b, int[] o) {
+        deleteAll();
+        add(b,o);
     }
 
     //Change values in beads list by 'value' if they are bigger than a 'limit'
@@ -70,5 +96,12 @@ public class Line {
             if(current >= limit) beads.set(i, current+value);
             if(current <= -limit) beads.set(i, current-value);
         }
+    }
+
+    public VPoint getStart() {
+        return start;
+    }
+    public VPoint getEnd() {
+        return end;
     }
 }

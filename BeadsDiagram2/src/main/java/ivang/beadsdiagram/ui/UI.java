@@ -9,7 +9,7 @@ import ivang.beadsdiagram.translate.JPoint;
     Extends UI and implements some of its functions. This class is defining what happens when
     user does something.
  */
-public class UI extends MyPanel {
+public class UI extends Workspace {
 
     private int action = NO_ACTION;
     private int slider;
