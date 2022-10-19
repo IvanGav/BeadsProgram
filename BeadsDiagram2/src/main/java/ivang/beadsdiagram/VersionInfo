@@ -1,4 +1,4 @@
-BeadsDiagram2 version 0.1
+BeadsDiagram2 version 0.2
 
 In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
     I'm planning to use area under workspace to allow user to manipulate strings(lines).
