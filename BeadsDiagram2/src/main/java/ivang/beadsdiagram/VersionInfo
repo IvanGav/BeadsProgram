@@ -1,4 +1,4 @@
-BeadsDiagram2 version 0.3.1
+BeadsDiagram2 version 0.4
 
 In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
     I'm planning to use area under workspace to allow user to manipulate strings(lines).
@@ -10,15 +10,25 @@ Kind of obvious, but translate level must not contain any additional information
 FileManager is broken in this version.
 
 What's new:
-    Whenever mouse is not in workspace, nothing will happen when clicking.
+    Function name change: createBead -> addBead
+    When entering -beadN for the string, the string will go in the opposite direction
+        (it will go from + to - (instead of usual from - to +))
+    Can delete lines now.
+    Can snap to 45-degree angle multiples when pressing 'shift'.
+    Better Layout organization and more user friendly.
+    Line is drawn when creating beads.
+    A few bugs fixed.
+    SnapAngle function added to Util class.
+    Line endpoints are not updated if that end bead has not changed.
+    Line endpoints will not be over bead up/down sliders when created (unless you move the slider to that position).
+
 
 Plan:
     Set up a gitignore file.
-    Change addLine/createBead to take in an object instead of parameters for creating one.
-    Allow for string to enter from either side of a bead.
     Allow to modify only one bead/string at a time.
-    Use shift to snap to 8 axis.
     Fix FileManager
+    If trying to add different sized arrays, error (beads/offsets).
+    Update comments.
 
 The program is divided into 3 levels:
 1) model

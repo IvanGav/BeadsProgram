@@ -7,8 +7,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
+/*
+    The UI under the main workspace. Mostly for line manipulation.
+ */
 public class Layout extends JPanel {
     JButton addLineButton;
+    JButton deleteLineButton;
     JComboBox<String> lines;
     JTextField beadsIn;
     JTextField offsetsIn;
@@ -21,6 +25,11 @@ public class Layout extends JPanel {
         addLineButton.setFocusPainted(false);
         addLineButton.setContentAreaFilled(false);
         this.add(addLineButton);
+
+        deleteLineButton = new JButton("Delete Selected String");
+        deleteLineButton.setFocusPainted(false);
+        deleteLineButton.setContentAreaFilled(false);
+        this.add(deleteLineButton);
 
         lines = new JComboBox<>(new String[]{"No Selection"});
         this.add(lines);
@@ -41,18 +50,17 @@ public class Layout extends JPanel {
         addLineButton.addActionListener(e -> addLine());
         lines.addActionListener(e -> updateLineFields());
         applyChangesButton.addActionListener(e -> updateLine());
+        deleteLineButton.addActionListener(e -> deleteLine());
     }
 
-    //when the user changes the selected line
+    //update beadsIn and offsetsIn (when the user changes the selected line)
     private void updateLineFields() {
-        int i = lines.getSelectedIndex();
+        int i = getSelectedLine();
         if(i == 0) {
-            beadsIn.setText("");
-            offsetsIn.setText("");
+            setInputFields("","");
         } else {
-            JLine l = dm.getLine(i-1);
-            beadsIn.setText(toString(l.beads));
-            offsetsIn.setText(toString(l.offsets));
+            JLine line = dm.getLine(i-1);
+            setInputFields(toString(line.beads), toString(line.offsets));
         }
     }
 
@@ -60,19 +68,52 @@ public class Layout extends JPanel {
     private void addLine() {
         dm.addLine();
         lines.addItem("String " + dm.numLines());
+        selectLine(lines.getItemCount()-1);
+    }
+
+    //delete the selected line (button)
+    private void deleteLine() {
+        int i = getSelectedLine();
+        if(i == 0) return;
+        dm.deleteLine(i-1);
+        selectLine(0);
+        lines.removeItemAt(lines.getItemCount()-1);
     }
 
     //apply changes button
     private void updateLine() {
-        if(lines.getSelectedIndex() == 0) return;
-        int[] beads = parse(beadsIn.getText());
-        int[] offsets = parse(offsetsIn.getText());
+        int i = getSelectedLine();
+        if(i == 0) return;
+        int[] beads = parse(getBeadsIn());
+        int[] offsets = parse(getOffsetsIn());
         if(beads == null || offsets == null) return;
         //index-1 because index 0 is Nothing selected
-        dm.getLine(lines.getSelectedIndex()-1).set(beads,offsets);
+        dm.getLine(i-1).set(beads,offsets,dm.getBead(beads[0]),dm.getBead(beads[beads.length-1]));
     }
 
-    //String to int[]
+    private void selectLine(int n) {
+        lines.setSelectedIndex(n);
+        updateLineFields();
+    }
+
+    private int getSelectedLine() {
+        return lines.getSelectedIndex();
+    }
+
+    private String getBeadsIn() {
+        return beadsIn.getText();
+    }
+
+    private String getOffsetsIn() {
+        return offsetsIn.getText();
+    }
+
+    private void setInputFields(String beads, String offsets) {
+        beadsIn.setText(beads);
+        offsetsIn.setText(offsets);
+    }
+
+    //String to int[]; if not a valid string, return null
     private int[] parse(String in) {
         if(in.equals("")) return new int[]{};
         String[] s = in.split(",");

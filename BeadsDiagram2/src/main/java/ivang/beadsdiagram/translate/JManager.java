@@ -9,12 +9,12 @@ import ivang.beadsdiagram.model.Line;
  */
 public class JManager extends DiagramManager {
     //create a bead at the end
-    public void createBead(int x, int y, double rot) {
+    public void addBead(int x, int y, double rot) {
         beads.add(new JBead(x,y,rot));
     }
 
     //create a bead with number n
-    public void createBead(int x, int y, double rot, int n) {
+    public void addBead(int x, int y, double rot, int n) {
         beads.add(n-1, new JBead(x,y,rot));
         for(Line l : lines)
             l.shift(n, 1);
@@ -25,6 +25,7 @@ public class JManager extends DiagramManager {
         return (JBead) super.getBead(n);
     }
 
+    //create a JLine and make its endpoints next to corresponding beads
     public void addLine() {
         lines.add(new JLine());
         lines.get(lines.size()-1).addEnds();

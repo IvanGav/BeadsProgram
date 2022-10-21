@@ -14,13 +14,6 @@ public class DiagramManager {
         lines = new ArrayList<>();
     }
 
-    //temporary?
-    public void addEndsToLines() {
-        for (Line line : lines) {
-            line.addEnds();
-        }
-    }
-
     public void addLine() {
         lines.add(new Line());
         lines.get(lines.size()-1).addEnds();
@@ -36,6 +29,11 @@ public class DiagramManager {
         lines.get(lines.size()-1).addEnds();
     }
 
+    //delete line by index
+    public void deleteLine(int n) {
+        lines.remove(n);
+    }
+
     public Line getLine(int i) {
         return lines.get(i);
     }
@@ -45,12 +43,12 @@ public class DiagramManager {
     }
 
     //create a bead at the end
-    public void createBead(int x, int y, double rot) {
+    public void addBead(int x, int y, double rot) {
         beads.add(new Bead(x,y,rot));
     }
 
     //create a bead with number n
-    public void createBead(int x, int y, double rot, int n) {
+    public void addBead(int x, int y, double rot, int n) {
         beads.add(n-1, new Bead(x,y,rot));
         for(Line l: lines)
             l.shift(n, 1);
@@ -65,7 +63,7 @@ public class DiagramManager {
 
     //get a bead from a list
     public Bead getBead(int n) {
-        return beads.get(n-1);
+        return beads.get(Math.abs(n)-1);
     }
 
     public int numBeads() {

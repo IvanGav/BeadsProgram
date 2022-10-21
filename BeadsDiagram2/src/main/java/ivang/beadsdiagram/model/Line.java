@@ -61,7 +61,7 @@ public class Line {
     //delete bead with a number 'n' from the list
     public void delete(int n) {
         for (int i = beads.size()-1; i >= 0; i--) {
-            if (beads.get(i) == Math.abs(n)) {
+            if (Math.abs(beads.get(i)) == Math.abs(n)) {
                 beads.remove(i);
                 offsets.remove(i);
             }

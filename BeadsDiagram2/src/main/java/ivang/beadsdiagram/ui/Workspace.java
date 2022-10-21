@@ -56,6 +56,7 @@ public class Workspace extends JPanel implements AWTEventListener {
 
     public boolean isMouseDown;
     public boolean isMouseInWorkspace;
+    public boolean isShiftDown;
 
     public Workspace(JManager dm) {
         image = new ImageIcon("placeholder.jpg").getImage();
@@ -81,7 +82,7 @@ public class Workspace extends JPanel implements AWTEventListener {
 
     //listen to mouse/keyboard
     public void eventDispatched(AWTEvent event) {
-        if(event.getID() == 503) { //mouse moved
+        if(event.getID() == 503) { //mouse moved; update isMouseInWorkspace
             MouseEvent me = (MouseEvent) event;
             isMouseInWorkspace = !isMouseOutOfBounds(me);
             if(isMouseInWorkspace) {
@@ -89,8 +90,9 @@ public class Workspace extends JPanel implements AWTEventListener {
                 mouseMoved();
             }
         }
-        if(event.getID() == 506) { //mouse dragged (pressed moved)
+        if(event.getID() == 506) { //mouse dragged (pressed moved); update isShiftDown
             MouseEvent me = (MouseEvent) event;
+            isShiftDown = me.isShiftDown();
             if(isMouseInWorkspace) {
                 updateMousePos(me);
                 mouseDragged(me.getButton());
@@ -112,7 +114,9 @@ public class Workspace extends JPanel implements AWTEventListener {
         }
         if(event.getID() == 500) { //mouse clicked
             MouseEvent me = (MouseEvent) event;
-            mouseClicked(me.getButton(), me.getClickCount());
+            if(isMouseInWorkspace) {
+                mouseClicked(me.getButton(), me.getClickCount());
+            }
         }
         if(event.getID() == 400) { //key typed
             KeyEvent ke = (KeyEvent) event;
@@ -120,14 +124,15 @@ public class Workspace extends JPanel implements AWTEventListener {
         }
     }
 
-    //draw
+    //draw; called automatically to redraw stuff
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         super.paint(g2d);
         g2d.drawImage(image, 0, 0, workspaceX, workspaceY, null);
         g2d.setPaint(Color.BLACK);
         drawBeads(g2d);
-        drawStrings(true, g2d);
+        drawStrings(g2d);
+        draw(g2d); //call every redraw frame so that UI can draw whatever
     }
 
     //____________________________________________Events_____________________________________________
@@ -165,6 +170,8 @@ public class Workspace extends JPanel implements AWTEventListener {
     public void mouseClicked(int button, int clickCount) { }
 
     public void keyTyped(char key) { }
+
+    public void draw(Graphics2D g2d) { }
 
     //__________________________________Calculating mouse things functions________________________________________
 
@@ -225,7 +232,7 @@ public class Workspace extends JPanel implements AWTEventListener {
     }
 
     //draw strings (lines)
-    public void drawStrings(boolean drawEnds, Graphics2D g2d) {
+    public void drawStrings(Graphics2D g2d) {
         for (int i = 0; i < dm.numLines(); i++) {
             if(dm.getLine(i).beads.size() > 0) {
                 //shortcut assignments
@@ -234,7 +241,7 @@ public class Workspace extends JPanel implements AWTEventListener {
                 JPoint start = dm.getLine(i).getStart();
                 JPoint end = dm.getLine(i).getEnd();
                 //start to first bead
-                if (drawEnds && start != null && dm.numBeads() >= Math.abs(points.get(0))) {
+                if (start != null && dm.numBeads() >= Math.abs(points.get(0))) {
                     drawStringBetween(start, -points.get(0), offsets.get(0), g2d);
                     drawCircle(start.x, start.y, SLIDER_CAPTURE_RADIUS, g2d);
                 }
@@ -245,7 +252,7 @@ public class Workspace extends JPanel implements AWTEventListener {
                     }
                 }
                 //last bead to end
-                if (drawEnds && end != null && dm.numBeads() >= Math.abs(points.get(points.size() - 1))) {
+                if (end != null && dm.numBeads() >= Math.abs(points.get(points.size() - 1))) {
                     drawStringBetween(end, points.get(points.size() - 1), offsets.get(offsets.size() - 1), g2d);
                     drawCircle(end.x, end.y, SLIDER_CAPTURE_RADIUS, g2d);
                 }
@@ -262,7 +269,7 @@ public class Workspace extends JPanel implements AWTEventListener {
         g.drawString(""+n,b.x+20,b.y);
         int dx = Util.rotX(BEAD_RADIUS,b.rot);
         int dy = Util.rotY(BEAD_RADIUS,b.rot);
-        g.drawLine(b.x,b.y,b.x+dx,b.y+dy);
+        drawLine(b.x,b.y,b.x+dx,b.y+dy,g);
     }
 
     //calculate bezier curve value for 4 points at specific t (0 <= t <= 1)
@@ -278,8 +285,8 @@ public class Workspace extends JPanel implements AWTEventListener {
     //if first or second is negative, it means that the string is going through them from back to front
     public void drawStringBetween(int first, int second, int offFirst,int offSecond, Graphics2D g2d) {
         //setup
-        JBead b1 = dm.getBead(Math.abs(first));
-        JBead b2 = dm.getBead(Math.abs(second));
+        JBead b1 = dm.getBead(first);
+        JBead b2 = dm.getBead(second);
         //p1 and p4 = beads: first and second
         JPoint p1 = b1.getPoint();
         p1.translate(Util.rotY(offFirst,b1.rot),Util.rotX(offFirst,b1.rot)); //x goes to y and wise versa to rotate it 90 degrees
@@ -302,7 +309,7 @@ public class Workspace extends JPanel implements AWTEventListener {
     //draw a string between a bead in the array of beads and a point (quadratic bezier)
     public void drawStringBetween(JPoint p, int beadN, int offset, Graphics2D g2d) {
         //setup
-        JBead b = dm.getBead(Math.abs(beadN));
+        JBead b = dm.getBead(beadN);
         JPoint p1 = b.getPoint();
         p1.translate(Util.rotY(offset,b.rot),Util.rotX(offset,b.rot));
         JPoint p3 = p;
@@ -319,13 +326,16 @@ public class Workspace extends JPanel implements AWTEventListener {
     public void drawBezier(JPoint p1, JPoint p2, JPoint p3, JPoint p4, Graphics2D g2d) {
         double detail = 20;
         for (int t = 0; t < detail; t++) {
-            g2d.drawLine(calcBezier(p1.x,p2.x,p3.x,p4.x,t / detail),calcBezier(p1.y,p2.y,p3.y,p4.y,t / detail),
-                    calcBezier(p1.x,p2.x,p3.x,p4.x,(t+1) / detail),calcBezier(p1.y,p2.y,p3.y,p4.y,(t+1) / detail));
+            drawLine(calcBezier(p1.x,p2.x,p3.x,p4.x,t / detail),calcBezier(p1.y,p2.y,p3.y,p4.y,t / detail),
+                    calcBezier(p1.x,p2.x,p3.x,p4.x,(t+1) / detail),calcBezier(p1.y,p2.y,p3.y,p4.y,(t+1) / detail),g2d);
         }
     }
 
     //draw a circle with center at (x,y) and radius 'r'
-    private void drawCircle(int x, int y, int r, Graphics2D g2d) {
+    protected void drawCircle(int x, int y, int r, Graphics2D g2d) {
         g2d.drawOval(x-r,y-r,r*2,r*2);
+    }
+    protected void drawLine(int x1, int y1, int x2, int y2, Graphics2D g2d) {
+        g2d.drawLine(x1,y1,x2,y2);
     }
 }

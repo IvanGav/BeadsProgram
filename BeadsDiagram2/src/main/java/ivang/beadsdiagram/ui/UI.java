@@ -5,6 +5,8 @@ import ivang.beadsdiagram.translate.JBead;
 import ivang.beadsdiagram.translate.JManager;
 import ivang.beadsdiagram.translate.JPoint;
 
+import java.awt.*;
+
 /*
     Extends UI and implements some of its functions. This class is defining what happens when
     user does something.
@@ -18,35 +20,40 @@ public class UI extends Workspace {
     private double tempAngle;
     private int numSelected = 1;
 
+    private int snapX;
+    private int snapY;
+
     public UI (JManager dm) {
         super(dm);
     }
 
     public void mousePressed(int button) {
-//        if(!isMouseInWorkspace) {
-//            action = NO_ACTION;
-//            slider = 0;
-//            lineEnd = null;
-//            grabbedBead = 0;
-//            return;
-//        } else {
         slider = strengthSlider();
         lineEnd = endGrabbed();
         grabbedBead = beadGrabbed();
+        if(button == MOUSE_LEFT) LMB();
+        else RMB();
+    }
+
+    //left mouse button pressed
+    private void LMB() {
         if(slider != 0)
             action = CHANGE_SLIDER;
         else if(lineEnd != null)
             action = LINE_END_MOVE;
-        else if(grabbedBead != 0) {
-            if(button == MOUSE_LEFT)
-                action = MOVE_BEAD;
-            else {
-                action = ROTATE_BEAD;
-                JBead b = dm.getBead(grabbedBead);
-                tempAngle = Util.angleBetween(b.x, b.y, mouseX, mouseY) - b.getRot();
-            }
-        } else
+        else if(grabbedBead != 0)
+            action = MOVE_BEAD;
+        else
             action = CREATE_BEAD;
+    }
+
+    //right mouse button pressed
+    private void RMB() {
+        if(grabbedBead != 0) {
+            action = ROTATE_BEAD;
+            JBead b = dm.getBead(grabbedBead);
+            tempAngle = Util.angleBetween(b.x, b.y, mouseX, mouseY) - b.getRot();
+        }
     }
 
     public void mouseReleased() {
@@ -71,9 +78,8 @@ public class UI extends Workspace {
     }
 
     public void mouseClicked(int button, int clickCount) {
-        if(button == MOUSE_RIGHT && clickCount == 2) {
+        if(button == MOUSE_RIGHT && clickCount > 1)
             deleteBead(grabbedBead);
-        }
     }
 
     public void keyTyped(char key) {
@@ -84,23 +90,47 @@ public class UI extends Workspace {
         if(key == 'l') dm = FileManager.loadFile("test"); //no, wrong. dm is not going to be changed outside of ui class
     }
 
+    public void draw(Graphics2D g2d) {
+        if(action == CREATE_BEAD) {
+            if(isShiftDown) {
+                setSnapPos(mouseDownX,mouseDownY,mouseX,mouseY);
+                drawLine(mouseDownX, mouseDownY, snapX, snapY, g2d);
+            } else {
+                drawLine(mouseDownX, mouseDownY, mouseX, mouseY, g2d);
+            }
+        }
+    }
+
     //-----------------additional methods-------------------
     private void createBead() {
         double angle = Util.angleBetween(mouseDownX, mouseDownY, mouseUpX, mouseUpY);
-        dm.createBead(mouseDownX, mouseDownY, angle);
+        if(isShiftDown) angle = Util.snapAngle(angle);
+        dm.addBead(mouseDownX, mouseDownY, angle);
     }
 
     private void createBeads() {
-        double angle = Util.angleBetween(mouseDownX, mouseDownY, mouseUpX, mouseUpY);
-        int dx = (mouseUpX - mouseDownX) / (numSelected - 1);
-        int dy = (mouseUpY - mouseDownY) / (numSelected - 1);
-        for (int i = 0; i < numSelected; i++) {
-            dm.createBead(mouseDownX + dx*i, mouseDownY + dy*i, angle);
+        if(isShiftDown) {
+            //with snap
+            double angle = Util.snapAngle(Util.angleBetween(mouseDownX, mouseDownY, mouseUpX, mouseUpY));
+            setSnapPos(mouseDownX,mouseDownY,mouseUpX,mouseUpY);
+            int dx = (snapX - mouseDownX) / (numSelected - 1);
+            int dy = (snapY - mouseDownY) / (numSelected - 1);
+            for (int i = 0; i < numSelected; i++) {
+                dm.addBead(mouseDownX + dx*i, mouseDownY + dy*i, angle);
+            }
+        } else {
+            //without snap
+            double angle = Util.angleBetween(mouseDownX, mouseDownY, mouseUpX, mouseUpY);
+            int dx = (mouseUpX - mouseDownX) / (numSelected - 1);
+            int dy = (mouseUpY - mouseDownY) / (numSelected - 1);
+            for (int i = 0; i < numSelected; i++) {
+                dm.addBead(mouseDownX + dx*i, mouseDownY + dy*i, angle);
+            }
         }
     }
 
     private void moveSlider() {
-        JBead b = dm.getBead(Math.abs(slider));
+        JBead b = dm.getBead(slider);
         if(slider > 0)
             b.moveUp(mouseX, mouseY);
         else
@@ -123,5 +153,13 @@ public class UI extends Workspace {
     private void deleteBead(int bead) {
         if(bead > 0)
             dm.deleteBead(grabbedBead);
+    }
+
+    private void setSnapPos(int originX, int originY, int x, int y) {
+        double angle = Util.angleBetween(originX, originY, x, y);
+        double snapAngle = Util.snapAngle(angle);
+        int dist = Util.rotX((int)Util.dist(originX, originY, x, y), angle-snapAngle);
+        snapX = originX + Util.rotX(dist,snapAngle);
+        snapY = originY + Util.rotY(dist,snapAngle);
     }
 }
