@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 /*
     The UI under the main workspace. Mostly for line manipulation.
+    All sizes of buttons/fields are hardcoded for now.
  */
 public class Layout extends JPanel {
     JButton addLineButton;
@@ -21,12 +22,13 @@ public class Layout extends JPanel {
     public Layout(JManager dm) {
         this.dm = dm;
 
+        //set up all the buttons and other UI in the lower layout
         addLineButton = new JButton("New String");
         addLineButton.setFocusPainted(false);
         addLineButton.setContentAreaFilled(false);
         this.add(addLineButton);
 
-        deleteLineButton = new JButton("Delete Selected String");
+        deleteLineButton = new JButton("Delete Selected");
         deleteLineButton.setFocusPainted(false);
         deleteLineButton.setContentAreaFilled(false);
         this.add(deleteLineButton);
@@ -47,6 +49,7 @@ public class Layout extends JPanel {
         applyChangesButton.setContentAreaFilled(false);
         this.add(applyChangesButton);
 
+        //add event listeners (so that something happens when you click buttons or change selected line)
         addLineButton.addActionListener(e -> addLine());
         lines.addActionListener(e -> updateLineFields());
         applyChangesButton.addActionListener(e -> updateLine());
@@ -87,8 +90,11 @@ public class Layout extends JPanel {
         int[] beads = parse(getBeadsIn());
         int[] offsets = parse(getOffsetsIn());
         if(beads == null || offsets == null) return;
-        //index-1 because index 0 is Nothing selected
-        dm.getLine(i-1).set(beads,offsets,dm.getBead(beads[0]),dm.getBead(beads[beads.length-1]));
+        //index-1 because index 0 is Nothing selected; If offsets is empty, assuming all 0's
+        if(offsets.length == 0)
+            dm.getLine(i-1).set(beads,dm.getBead(beads[0]),dm.getBead(beads[beads.length-1]));
+        else if(beads.length == offsets.length)
+            dm.getLine(i-1).set(beads,offsets,dm.getBead(beads[0]),dm.getBead(beads[beads.length-1]));
     }
 
     private void selectLine(int n) {

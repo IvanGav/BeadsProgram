@@ -10,8 +10,6 @@ public class Display  {
         JManager dm;
         if(true) {
             dm = new JManager();
-//            dm.addLine(new int[]{1, 3, 4}, new int[]{5, 5, 5});
-//            dm.addLine(new int[]{2, 3, 5}, new int[]{-5, -5, -5});
         } else {
             dm = FileManager.loadFile("test");
         }

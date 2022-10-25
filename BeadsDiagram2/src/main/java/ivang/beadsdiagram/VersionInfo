@@ -1,34 +1,33 @@
-BeadsDiagram2 version 0.4
+BeadsDiagram2 version 0.5
 
-In this version you can create/delete beads, but there is no way to add strings(lines) except for hardcoding in Display.
-    I'm planning to use area under workspace to allow user to manipulate strings(lines).
 This version is hard limited to 1 window, so if several windows needed, a lot of code has to be rearranged.
 UI uses Google Gson Library to convert Java Objects to JSON and wise versa.
-Bezier curves are quadratic and use: first bead, it's up point, second bead's down point, second bead; as its 4 points.
+Bezier curves are cubic and use: first bead, it's up point, second bead's down point, second bead; as its 4 points.
 Kind of obvious, but translate level must not contain any additional information to model level that is required to
     draw a diagram. All information required to draw a diagram must be stored on model level.
-FileManager is broken in this version.
+FileManager is still broken in this version.
 
 What's new:
-    Function name change: createBead -> addBead
-    When entering -beadN for the string, the string will go in the opposite direction
-        (it will go from + to - (instead of usual from - to +))
-    Can delete lines now.
-    Can snap to 45-degree angle multiples when pressing 'shift'.
-    Better Layout organization and more user friendly.
-    Line is drawn when creating beads.
-    A few bugs fixed.
-    SnapAngle function added to Util class.
-    Line endpoints are not updated if that end bead has not changed.
-    Line endpoints will not be over bead up/down sliders when created (unless you move the slider to that position).
-
+    If trying to add different sized arrays (beads/offsets), nothing happens.
+    Added snap when rotating a bead.
+    Snap function (int Util) is changed.
+    Offsets in beads are fixed (they were broken before and I didn't notice).
+    Slightly optimized functions.
+    Whenever image is portrait orientation, it will be turned to landscape. Subject to change.
+    Image seems to be rotating/scaling properly now.
+    Now the window is limited (hard coded) to 750x1500 pixels.
+    If maximum window size needs to be changed, maxH and maxW variables can be changed in Workspace constructor.
 
 Plan:
     Set up a gitignore file.
     Allow to modify only one bead/string at a time.
-    Fix FileManager
-    If trying to add different sized arrays, error (beads/offsets).
+    Fix FileManager.
     Update comments.
+    Reorganize functions (such as delete duplicate functions with one or two different lines
+        or create new functions for better organization).
+    Crop image.
+    Make it look good when offsets are > |10| (move all bezier point positions).
+    See if turning/cropping/etc of the image should be changed.
 
 The program is divided into 3 levels:
 1) model

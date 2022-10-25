@@ -147,7 +147,9 @@ public class UI extends Workspace {
 
     private void rotBead() {
         JBead b = dm.getBead(grabbedBead);
-        b.rotateTo(Util.angleBetween(b.x, b.y, mouseX, mouseY) - tempAngle);
+        double angle = Util.angleBetween(b.x, b.y, mouseX, mouseY) - tempAngle;
+        if(isShiftDown) angle = Util.snapAngle(angle);
+        b.rotateTo(angle);
     }
 
     private void deleteBead(int bead) {

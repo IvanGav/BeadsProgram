@@ -6,19 +6,26 @@ Bead manipulation
     RightClick+Drag on bead to rotate it.
     Double RightClick a bead to delete it.
     1-9 to set how many beads to create at once in a line (at the beginning set to 1).
-    Press shift when creating a bead to snap it to 45-degree angle multiples.
+    Press shift when creating or rotating a bead to snap it to 45-degree angle multiples.
 
 String manipulation
     Click "New String" button to create a new string.
-    Click "Delete Selected String" button to delete currently selected string.
+    Click "Delete Selected" button to delete currently selected string.
     Choose a string you want to edit.
     First text field is through which beads the string will go through.
     Second text field is what offsets to give to the string passing through the corresponding bead.
     Click "Apply" to modify the string.
     Example input: "1,2,3,-1" "5,0,10,-5"; it will draw a line from 1 to 2 to 3 to 1 from front to back, and when going
         through 1, the string will be offset by a bit up/down.
+    Offsets should be in range (10,-10) (or they will look really bad using my method of drawing strings).
+        Good positions are: -10,-5,0,5,10. This way there are 5 distinguishable lines max to pass through a bead.
+    If offsets field is empty, all 0's will be assumed
 
 Save/Load
     press 's' to save to "test" (don't do it)
     press 'n' to create "test" (it works but not really)
     press 'l' to load from "test" (because this it broken)
+
+TEMPORARY
+    If you want to change the background image, go to Workspace->constructor->first line.
+        Change the string to the path of your image of choice.

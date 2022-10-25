@@ -30,14 +30,13 @@ public class Util {
 
     //find the angle that is multiple of 45 degrees closest to the given angle
     public static double snapAngle(double angle) {
-        double[] angles = {-Math.PI,-3*Math.PI/4,-Math.PI/2,-Math.PI/4,0,
-                Math.PI/4,Math.PI/2,3*Math.PI/4,Math.PI,5*Math.PI/4,3*Math.PI/2,7*Math.PI/4};
-        int closeNum = 0;
-        for (int i = 1; i < angles.length; i++) {
-            if(Math.abs(angle-angles[i]) < Math.abs(angle-angles[closeNum])) {
-                closeNum = i;
-            }
+        while(angle < 0) {
+            angle += Math.PI*2;
         }
-        return angles[closeNum];
+        double closeAngle = 0;
+        while(Math.abs(angle - closeAngle - Math.PI/4) < Math.abs(angle - closeAngle)) {
+            closeAngle += Math.PI/4;
+        }
+        return closeAngle;
     }
 }

@@ -10,6 +10,10 @@ import java.awt.*;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.util.ArrayList;
 
 /*
@@ -41,6 +45,7 @@ public class Workspace extends JPanel implements AWTEventListener {
 
     public JManager dm;
     public Image image;
+    public AffineTransform imageTransform;
 
     //current mouse position
     public int mouseX;
@@ -59,16 +64,50 @@ public class Workspace extends JPanel implements AWTEventListener {
     public boolean isShiftDown;
 
     public Workspace(JManager dm) {
-        image = new ImageIcon("placeholder.jpg").getImage();
+        image = new ImageIcon("test.jpg").getImage();
         int imgW = image.getWidth(null);
         int imgH = image.getHeight(null);
+        imageTransform = new AffineTransform();
 
-        int screenSize = 750;
-        workspaceX = screenSize;
-        workspaceY = screenSize * imgH / imgW;
+        int maxH = 750; //change max workspace size here if you need to
+        int maxW = 1500;
+        boolean toTranslate = false;
+        double factor = 1;
 
+        //image should be landscape, not portrait (for not at least)
+        if(imgW < imgH) {
+            int temp = imgH;
+            imgH = imgW;
+            imgW = temp;
+            imageTransform.rotate(Math.PI/2);
+            toTranslate = true;
+        }
+        //if too bit, shrink
+        if(imgH > maxH) {
+            imageTransform.scale((double)maxH/imgH,(double)maxH/imgH);
+            factor *= (double)maxH/imgH;
+            imgW = (int)(imgW * (double)maxH/imgH);
+            imgH = maxH;
+        }
+        //not sure if this is necessary, but also shrink if needed
+        if(imgW > maxW) {
+            imageTransform.scale((double)maxW/imgW,(double)maxW/imgW);
+            factor *= (double)maxW/imgW;
+            imgH = (int)(imgH * (double)maxW/imgW);
+            imgW = maxW;
+        }
+        //not a great solution, but I can't do anything better for now
+        if(toTranslate) {
+            //after rotation, image has to be shifted, or it will be offscreen
+            //      (think about clockwise rotation around origin - (0,0) - top left corner)
+            //after rotation, equivalent to translate +imgW on x-axis
+            //after scaling, division by scaling factor will move by what it would originally move
+            imageTransform.translate(0, -imgW / factor);
+        }
+
+        workspaceX = imgW;
+        workspaceY = imgH;
         this.dm = dm;
-
         isMouseDown = false;
 
         this.setPreferredSize(new Dimension(workspaceX,workspaceY));
@@ -76,6 +115,8 @@ public class Workspace extends JPanel implements AWTEventListener {
         //listener
         Toolkit.getDefaultToolkit().addAWTEventListener(this,
                 AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
+        //can be replaced with:
+        //this.addMouseListener(new MouseListener() { ... });
     }
 
     //___________________________Draw and listen to mouse/keyboard______________________________
@@ -128,7 +169,8 @@ public class Workspace extends JPanel implements AWTEventListener {
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         super.paint(g2d);
-        g2d.drawImage(image, 0, 0, workspaceX, workspaceY, null);
+//        g2d.drawImage(image, 0, 0, workspaceX, workspaceY, null);
+        g2d.drawImage(image,imageTransform,null);
         g2d.setPaint(Color.BLACK);
         drawBeads(g2d);
         drawStrings(g2d);
@@ -283,25 +325,25 @@ public class Workspace extends JPanel implements AWTEventListener {
 
     //draw a string between 2 beads in the array of beads
     //if first or second is negative, it means that the string is going through them from back to front
-    public void drawStringBetween(int first, int second, int offFirst,int offSecond, Graphics2D g2d) {
+    public void drawStringBetween(int first, int second, int offFirst, int offSecond, Graphics2D g2d) {
         //setup
         JBead b1 = dm.getBead(first);
         JBead b2 = dm.getBead(second);
         //p1 and p4 = beads: first and second
         JPoint p1 = b1.getPoint();
-        p1.translate(Util.rotY(offFirst,b1.rot),Util.rotX(offFirst,b1.rot)); //x goes to y and wise versa to rotate it 90 degrees
+        p1.translate(Util.rotY(offFirst,b1.rot),-Util.rotX(offFirst,b1.rot)); //x goes to y and wise versa to rotate it 90 degrees
         JPoint p4 = b2.getPoint();
-        p4.translate(Util.rotY(offSecond,b2.rot),Util.rotX(offSecond,b2.rot)); //same here
-        JPoint p2 = p1.copy();
+        p4.translate(Util.rotY(offSecond,b2.rot),-Util.rotX(offSecond,b2.rot)); //same here
+        JPoint p2;
         if(first >= 0)
-            p2.translate(Util.rotX(b1.upS,b1.rot),Util.rotY(b1.upS,b1.rot));
+            p2 = b1.upP;
         else
-            p2.translate(Util.rotX(b1.downS,b1.rot),Util.rotY(b1.downS,b1.rot));
-        JPoint p3 = p4.copy();
+            p2 = b1.downP;
+        JPoint p3;
         if(second >= 0)
-            p3.translate(Util.rotX(b2.downS,b2.rot),Util.rotY(b2.downS,b2.rot));
+            p3 = b2.downP;
         else
-            p3.translate(Util.rotX(b2.upS,b2.rot),Util.rotY(b2.upS,b2.rot));
+            p3 = b2.upP;
         //actual drawing
         drawBezier(p1,p2,p3,p4,g2d);
     }
@@ -311,13 +353,13 @@ public class Workspace extends JPanel implements AWTEventListener {
         //setup
         JBead b = dm.getBead(beadN);
         JPoint p1 = b.getPoint();
-        p1.translate(Util.rotY(offset,b.rot),Util.rotX(offset,b.rot));
+        p1.translate(Util.rotY(offset,b.rot),-Util.rotX(offset,b.rot));
         JPoint p3 = p;
-        JPoint p2 = p1.copy();
+        JPoint p2;
         if(beadN >= 0)
-            p2.translate(Util.rotX(b.upS,b.rot),Util.rotY(b.upS,b.rot));
+            p2 = b.upP;
         else
-            p2.translate(Util.rotX(b.downS,b.rot),Util.rotY(b.downS,b.rot));
+            p2 = b.downP;
         //actual drawing
         drawBezier(p1,p2,p2,p3,g2d);
     }
