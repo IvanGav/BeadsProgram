@@ -4,6 +4,8 @@ import ivang.beadsdiagram.translate.JManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 /*
     An actual frame. Contains Workspace which draws a diagram on itself.
@@ -15,8 +17,8 @@ public class Window extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         this.add(panel); //put a panel to this frame, which will hold all other elements.
 
-        JPanel ui = new UI(dm);
-        JPanel layout = new Layout(dm);
+        UI ui = new UI(dm);
+        Layout layout = new Layout(dm);
 
         panel.add(ui); //the main panel that you draw stuff on
         panel.add(layout); //bottom panel holds all other ui - buttons, dropdowns and stuff
@@ -27,5 +29,6 @@ public class Window extends JFrame {
         this.setTitle("Testing in process");
         this.setLocationRelativeTo(null);
         this.setVisible(true);
+        this.setFocusable(true);
     }
 }

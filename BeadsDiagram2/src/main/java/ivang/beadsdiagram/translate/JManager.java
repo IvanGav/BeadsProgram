@@ -47,4 +47,9 @@ public class JManager extends DiagramManager {
     public JLine getLine(int i) {
         return (JLine) super.getLine(i);
     }
+
+    public void load(JManager dm) {
+        this.beads = dm.beads;
+        this.lines = dm.lines;
+    }
 }

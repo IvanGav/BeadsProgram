@@ -14,10 +14,16 @@ import java.awt.*;
 public class UI extends Workspace {
 
     private int action = NO_ACTION;
-    private int slider;
-    private JPoint lineEnd;
-    private int grabbedBead;
+    private int slider = 0;
+    private JPoint lineEnd = null;
+    private int grabbedBead = 0;
+    //when you rotate, it does not point to the direction of your mouse, but the difference
+    //between where you started rotating and current rotation
+    //tempAngle stores at what angle you started rotating
     private double tempAngle;
+    //same goes for x and y when moving a bead
+    private int tempDiffX;
+    private int tempDiffY;
     private int numSelected = 1;
 
     private int snapX;
@@ -28,9 +34,10 @@ public class UI extends Workspace {
     }
 
     public void mousePressed(int button) {
-        slider = strengthSlider();
+        //grabbedBead is the one selected right now; if trying to move sliders, don't update it
+        slider = strengthSlider(grabbedBead);
         lineEnd = endGrabbed();
-        grabbedBead = beadGrabbed();
+        if(slider == 0 && lineEnd == null) grabbedBead = beadGrabbed();
         if(button == MOUSE_LEFT) LMB();
         else RMB();
     }
@@ -41,9 +48,12 @@ public class UI extends Workspace {
             action = CHANGE_SLIDER;
         else if(lineEnd != null)
             action = LINE_END_MOVE;
-        else if(grabbedBead != 0)
+        else if(grabbedBead != 0) {
             action = MOVE_BEAD;
-        else
+            JBead b = dm.getBead(grabbedBead);
+            tempDiffX = b.x - mouseX;
+            tempDiffY = b.y - mouseY;
+        } else
             action = CREATE_BEAD;
     }
 
@@ -64,6 +74,8 @@ public class UI extends Workspace {
                 createBeads();
         }
         action = NO_ACTION;
+        slider = 0;
+        lineEnd = null;
     }
 
     public void mouseDragged(int button) {
@@ -85,12 +97,14 @@ public class UI extends Workspace {
     public void keyTyped(char key) {
         if(key > 48 && key < 58)
             numSelected = key - 48;
-        if(key == 's') FileManager.saveFile("test", dm);
-        if(key == 'n') FileManager.createFile("test");
-        if(key == 'l') dm = FileManager.loadFile("test"); //no, wrong. dm is not going to be changed outside of ui class
+//        if(key == 's') FileManager.saveFile(fileName, dm);
+//        if(key == 'n') FileManager.createFile(fileName);
+//        if(key == 'l') dm.load(FileManager.loadFile(fileName));
     }
 
     public void draw(Graphics2D g2d) {
+        drawBeadSliders(g2d, grabbedBead);
+        //if creating bead, draw a line from beginning to mouse position
         if(action == CREATE_BEAD) {
             if(isShiftDown) {
                 setSnapPos(mouseDownX,mouseDownY,mouseX,mouseY);
@@ -142,7 +156,7 @@ public class UI extends Workspace {
     }
 
     private void moveBead() {
-        dm.getBead(grabbedBead).moveTo(mouseX, mouseY);
+        dm.getBead(grabbedBead).moveTo(mouseX+tempDiffX, mouseY+tempDiffY);
     }
 
     private void rotBead() {

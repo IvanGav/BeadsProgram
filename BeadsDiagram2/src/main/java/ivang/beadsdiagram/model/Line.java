@@ -104,4 +104,12 @@ public class Line {
     public VPoint getEnd() {
         return end;
     }
+    public void setStart(VPoint start) {
+        this.start.x = start.x;
+        this.start.y = start.y;
+    }
+    public void setEnd(VPoint end) {
+        this.end.x = end.x;
+        this.end.y = end.y;
+    }
 }

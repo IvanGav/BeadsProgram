@@ -1,33 +1,29 @@
-BeadsDiagram2 version 0.5
+BeadsDiagram2 version 0.6
 
 This version is hard limited to 1 window, so if several windows needed, a lot of code has to be rearranged.
+I'm still considering changing from beads having their own strength sliders to every line having a separate
+    set of strength sliders for each bead it's going through. It will require me to rewrite like 50% of code.
 UI uses Google Gson Library to convert Java Objects to JSON and wise versa.
 Bezier curves are cubic and use: first bead, it's up point, second bead's down point, second bead; as its 4 points.
 Kind of obvious, but translate level must not contain any additional information to model level that is required to
     draw a diagram. All information required to draw a diagram must be stored on model level.
-FileManager is still broken in this version.
 
 What's new:
-    If trying to add different sized arrays (beads/offsets), nothing happens.
-    Added snap when rotating a bead.
-    Snap function (int Util) is changed.
-    Offsets in beads are fixed (they were broken before and I didn't notice).
-    Slightly optimized functions.
-    Whenever image is portrait orientation, it will be turned to landscape. Subject to change.
-    Image seems to be rotating/scaling properly now.
-    Now the window is limited (hard coded) to 750x1500 pixels.
-    If maximum window size needs to be changed, maxH and maxW variables can be changed in Workspace constructor.
+    Can only edit one bead at a time (hides other beads' strength sliders).
+    Can save/load files, finally.
+    Added buttons to Save/Load from "test" file.
+    When offsets are >10, they look fine now.
 
 Plan:
     Set up a gitignore file.
-    Allow to modify only one bead/string at a time.
-    Fix FileManager.
     Update comments.
     Reorganize functions (such as delete duplicate functions with one or two different lines
         or create new functions for better organization).
     Crop image.
-    Make it look good when offsets are > |10| (move all bezier point positions).
     See if turning/cropping/etc of the image should be changed.
+    Draw lines even if they are empty (or not, idk).
+    Allow to modify only selected string (endpoints).
+    Change Save/Load to key presses instead of buttons
 
 The program is divided into 3 levels:
 1) model

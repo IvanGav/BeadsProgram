@@ -18,6 +18,8 @@ public class Layout extends JPanel {
     JTextField beadsIn;
     JTextField offsetsIn;
     JButton applyChangesButton;
+    JButton saveButton;
+    JButton loadButton;
     JManager dm;
     public Layout(JManager dm) {
         this.dm = dm;
@@ -49,17 +51,48 @@ public class Layout extends JPanel {
         applyChangesButton.setContentAreaFilled(false);
         this.add(applyChangesButton);
 
+        saveButton = new JButton("Save");
+        saveButton.setFocusPainted(false);
+        saveButton.setContentAreaFilled(false);
+        this.add(saveButton);
+
+        loadButton = new JButton("Load");
+        loadButton.setFocusPainted(false);
+        loadButton.setContentAreaFilled(false);
+        this.add(loadButton);
+
         //add event listeners (so that something happens when you click buttons or change selected line)
         addLineButton.addActionListener(e -> addLine());
         lines.addActionListener(e -> updateLineFields());
         applyChangesButton.addActionListener(e -> updateLine());
         deleteLineButton.addActionListener(e -> deleteLine());
+        saveButton.addActionListener(e -> saveDM());
+        loadButton.addActionListener(e -> loadDM());
+    }
+
+    private void saveDM() {
+        FileManager.saveFile("test", dm);
+    }
+
+    private void loadDM() {
+        dm.load(FileManager.loadFile("test"));
+        selectLine(0);
+        updateLines();
+    }
+
+    private void updateLines() {
+        for (int i = 1; i < lines.getItemCount(); i++) {
+            lines.removeItemAt(1);
+        }
+        for (int i = 0; i < dm.numLines(); i++) {
+            lines.addItem("String " + (i+1));
+        }
     }
 
     //update beadsIn and offsetsIn (when the user changes the selected line)
     private void updateLineFields() {
         int i = getSelectedLine();
-        if(i == 0) {
+        if(i < 1) {
             setInputFields("","");
         } else {
             JLine line = dm.getLine(i-1);
@@ -99,7 +132,7 @@ public class Layout extends JPanel {
 
     private void selectLine(int n) {
         lines.setSelectedIndex(n);
-        updateLineFields();
+//        updateLineFields();
     }
 
     private int getSelectedLine() {

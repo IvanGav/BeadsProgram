@@ -7,6 +7,7 @@ Bead manipulation
     Double RightClick a bead to delete it.
     1-9 to set how many beads to create at once in a line (at the beginning set to 1).
     Press shift when creating or rotating a bead to snap it to 45-degree angle multiples.
+    Click a bead to select it and change its strength sliders.
 
 String manipulation
     Click "New String" button to create a new string.
@@ -22,9 +23,8 @@ String manipulation
     If offsets field is empty, all 0's will be assumed
 
 Save/Load
-    press 's' to save to "test" (don't do it)
-    press 'n' to create "test" (it works but not really)
-    press 'l' to load from "test" (because this it broken)
+    Press 'Save' button to save to "test"
+    Press 'Load' button to load from "test"
 
 TEMPORARY
     If you want to change the background image, go to Workspace->constructor->first line.

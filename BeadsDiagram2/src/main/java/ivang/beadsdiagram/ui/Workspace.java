@@ -7,10 +7,7 @@ import ivang.beadsdiagram.translate.JPoint;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.AWTEventListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
@@ -72,7 +69,7 @@ public class Workspace extends JPanel implements AWTEventListener {
         int maxH = 750; //change max workspace size here if you need to
         int maxW = 1500;
         boolean toTranslate = false;
-        double factor = 1;
+        double factor = 1; //might be replaced with imageTransform.getScaleX() (scale y and x are same)
 
         //image should be landscape, not portrait (for not at least)
         if(imgW < imgH) {
@@ -96,7 +93,7 @@ public class Workspace extends JPanel implements AWTEventListener {
             imgH = (int)(imgH * (double)maxW/imgW);
             imgW = maxW;
         }
-        //not a great solution, but I can't do anything better for now
+        //not a great solution, but I can't think of anything better for now
         if(toTranslate) {
             //after rotation, image has to be shifted, or it will be offscreen
             //      (think about clockwise rotation around origin - (0,0) - top left corner)
@@ -108,7 +105,6 @@ public class Workspace extends JPanel implements AWTEventListener {
         workspaceX = imgW;
         workspaceY = imgH;
         this.dm = dm;
-        isMouseDown = false;
 
         this.setPreferredSize(new Dimension(workspaceX,workspaceY));
         this.setVisible(true);
@@ -219,6 +215,8 @@ public class Workspace extends JPanel implements AWTEventListener {
 
     //return the +bead number in array if mouse is close to its upS slider, -beadN if close to downS
     //  and 0 if mouse is not near any slider. Prefers lower bead numbers if some overlap.
+    //  selects among all beads which is unnecessary anymore
+    @Deprecated
     public int strengthSlider() {
         for (int i = 1; i <= dm.numBeads(); i++) {
             JBead b = dm.getBead(i);
@@ -228,6 +226,21 @@ public class Workspace extends JPanel implements AWTEventListener {
             if(Util.dist(b.downP.x, b.downP.y, mouseX, mouseY) < SLIDER_CAPTURE_RADIUS) {
                 return -i;
             }
+        }
+        return 0;
+    }
+
+    //return the +bead if mouse is close to its upS slider, -bead if close to downS
+    //  and 0 if mouse is not near any slider of bead's sliders
+    public int strengthSlider(int bead) {
+        if(bead < 1 || bead > dm.numBeads())
+            return 0;
+        JBead b = dm.getBead(bead);
+        if(Util.dist(b.upP.x, b.upP.y, mouseX, mouseY) < SLIDER_CAPTURE_RADIUS) {
+            return bead;
+        }
+        if(Util.dist(b.downP.x, b.downP.y, mouseX, mouseY) < SLIDER_CAPTURE_RADIUS) {
+            return -bead;
         }
         return 0;
     }
@@ -265,11 +278,6 @@ public class Workspace extends JPanel implements AWTEventListener {
     public void drawBeads(Graphics2D g2d) {
         for (int i = 1; i <= dm.numBeads(); i++) {
             bead(g2d, i);
-            JBead b = dm.getBead(i);
-            g2d.drawString(i+"+", b.upP.x, b.upP.y);
-            drawCircle(b.upP.x,b.upP.y,SLIDER_CAPTURE_RADIUS,g2d);
-            g2d.drawString(i+"-", b.downP.x, b.downP.y);
-            drawCircle(b.downP.x,b.downP.y,SLIDER_CAPTURE_RADIUS,g2d);
         }
     }
 
@@ -314,6 +322,16 @@ public class Workspace extends JPanel implements AWTEventListener {
         drawLine(b.x,b.y,b.x+dx,b.y+dy,g);
     }
 
+    //draw up and down sliders for bead number 'bead'
+    public void drawBeadSliders(Graphics2D g2d, int bead) {
+        if(bead < 1 || bead > dm.numBeads()) return;
+        JBead b = dm.getBead(bead);
+        g2d.drawString(bead+"+", b.upP.x, b.upP.y);
+        drawCircle(b.upP.x,b.upP.y,SLIDER_CAPTURE_RADIUS,g2d);
+        g2d.drawString(bead+"-", b.downP.x, b.downP.y);
+        drawCircle(b.downP.x,b.downP.y,SLIDER_CAPTURE_RADIUS,g2d);
+    }
+
     //calculate bezier curve value for 4 points at specific t (0 <= t <= 1)
     private int calcBezier(int p1, int p2, int p3, int p4, double t) {
         double v1 = Math.pow(1-t, 3) * p1;
@@ -336,14 +354,16 @@ public class Workspace extends JPanel implements AWTEventListener {
         p4.translate(Util.rotY(offSecond,b2.rot),-Util.rotX(offSecond,b2.rot)); //same here
         JPoint p2;
         if(first >= 0)
-            p2 = b1.upP;
+            p2 = b1.upP.copy();
         else
-            p2 = b1.downP;
+            p2 = b1.downP.copy();
+        p2.translate(Util.rotY(offFirst,b1.rot),-Util.rotX(offFirst,b1.rot));
         JPoint p3;
         if(second >= 0)
-            p3 = b2.downP;
+            p3 = b2.downP.copy();
         else
-            p3 = b2.upP;
+            p3 = b2.upP.copy();
+        p3.translate(Util.rotY(offSecond,b2.rot),-Util.rotX(offSecond,b2.rot));
         //actual drawing
         drawBezier(p1,p2,p3,p4,g2d);
     }
@@ -357,9 +377,10 @@ public class Workspace extends JPanel implements AWTEventListener {
         JPoint p3 = p;
         JPoint p2;
         if(beadN >= 0)
-            p2 = b.upP;
+            p2 = b.upP.copy();
         else
-            p2 = b.downP;
+            p2 = b.downP.copy();
+        p2.translate(Util.rotY(offset,b.rot),-Util.rotX(offset,b.rot));
         //actual drawing
         drawBezier(p1,p2,p2,p3,g2d);
     }
